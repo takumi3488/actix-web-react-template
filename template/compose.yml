@@ -1,0 +1,48 @@
+services:
+  preview:
+    build: .
+    ports:
+      - "8080:8080"
+  
+  web:
+    build:
+      dockerfile: Dockerfile.web
+    environment:
+      - API_ORIGIN=http://server:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  server:
+    build:
+      dockerfile: Dockerfile.server
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  e2e-preview:
+    build:
+      dockerfile: Dockerfile.web
+    environment:
+      - TARGET_ORIGIN=http://preview:8080
+    depends_on:
+      - preview
+    command: pnpm run e2e
+
+  e2e-dev:
+    build:
+      dockerfile: Dockerfile.web
+    environment:
+      - TARGET_ORIGIN=http://web:9000
+    depends_on:
+      web:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    command: pnpm run e2e

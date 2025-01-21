@@ -1,0 +1,16 @@
+[package]
+name = "awr-tmpl"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+description = "A template for React in Actix Web"
+
+[dependencies]
+anyhow = "1.0.95"
+axum = "0.8.1"
+dialoguer = "0.11.0"
+indicatif = "0.17.9"
+tokio = { version = "1.43.0", features = ["full"] }
+
+[profile.release]
+strip = true

@@ -1,0 +1,57 @@
+version: "3"
+
+tasks:
+  default:
+    aliases:
+      - dev
+    deps:
+      - front:dev
+      - server:dev
+
+  preview:
+    deps:
+      - front:build
+      - server:build
+    cmds:
+      - ./target/debug/a
+
+  front:dev:
+    env:
+      FARM_BACKEND_ORIGIN: http://localhost:8080
+    cmds:
+      - pnpm run dev
+
+  front:build:
+    cmds:
+      - pnpm run build
+
+  server:dev:
+    cmds:
+      - cargo run
+
+  server:build:
+    cmds:
+      - cargo build
+
+  e2e:
+    cmds:
+      - task e2e:dev
+      - task e2e:preview
+
+  e2e:preview:
+    cmds:
+      - docker compose up -d --build preview
+      - while ! curl -s http://localhost:8080/api/health; do sleep 1; done
+      - docker compose up e2e-preview
+      - docker compose stop preview
+
+  e2e:dev:
+    cmds:
+      - docker compose up -d --build server web
+      - docker compose up e2e-dev
+      - docker compose stop server web
+
+  lint:
+    deps:
+      - front:lint
+      - server:lint
